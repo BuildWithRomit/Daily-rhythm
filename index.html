@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101728">
+<meta name="robots" content="noindex, nofollow">
+<title>Diya’s Daily Rhythm</title>
+
+<!--
+  Diya's rhythm sheet. Everything is editable plain text.
+
+  · Study topics live in the two "Deep work" cards in the timeline.
+  · The hobby jar options are the `hobbies` array at the bottom of the script.
+  · The clock, the "Now" highlight and the automatic dark mode all run on
+    IST (UTC+5:30) regardless of what timezone the device is set to.
+  · Ticks reset when the page reloads — nothing is stored anywhere.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --paper:#F1F7F4;
+  --card:#FFFFFF;
+  --ink:#12312F;
+  --ink-soft:#5A7A76;
+  --line:#D8E7E1;
+
+  --mango:#E8961C;
+  --pool:#1C6E68;
+  --guava:#F2665E;
+  --plum:#4B3C7E;
+  --night:#1B2340;
+
+  --r:18px;
+  --shadow:0 1px 2px rgba(18,49,47,.05), 0 12px 28px -18px rgba(18,49,47,.35);
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Karla","Segoe UI",system-ui,sans-serif;
+  --mono:"DM Mono","SF Mono",ui-monospace,monospace;
+}
+html[data-theme="night"]{
+  --paper:#101728;
+  --card:#182238;
+  --ink:#EAF2F0;
+  --ink-soft:#93A8B8;
+  --line:#2A3852;
+  --mango:#F3B14A;
+  --pool:#54B8AC;
+  --guava:#FF8C82;
+  --plum:#A392E8;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 16px 34px -20px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  transition:background .6s ease,color .6s ease;
+}
+
+/* ---------- ambient background ---------- */
+.sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.30;animation:drift 26s ease-in-out infinite}
+.orb.a{width:46vmax;height:46vmax;left:-14vmax;top:-16vmax;background:var(--mango)}
+.orb.b{width:40vmax;height:40vmax;right:-14vmax;top:28vh;background:var(--pool);animation-delay:-9s}
+.orb.c{width:44vmax;height:44vmax;left:12vw;bottom:-22vmax;background:var(--plum);animation-delay:-17s}
+html[data-theme="night"] .orb{opacity:.22}
+@keyframes drift{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  33%{transform:translate3d(4vw,-3vh,0) scale(1.08)}
+  66%{transform:translate3d(-3vw,4vh,0) scale(.95)}
+}
+
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 18px 90px}
+
+/* ---------- top bar ---------- */
+.bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;margin:10px 0 0;
+  background:var(--card);
+  background:color-mix(in srgb,var(--card) 82%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:999px;
+  box-shadow:var(--shadow);
+}
+.bar .who{font-family:var(--display);font-weight:800;font-size:.95rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .clock{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);margin-left:auto;white-space:nowrap}
+.ring{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;position:relative}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring .trk{stroke:var(--line)}
+.ring .val{stroke:var(--pool);stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.3,1.2,.4,1)}
+.ring b{position:absolute;font-family:var(--mono);font-size:.62rem;font-weight:500}
+.btn{
+  font-family:var(--body);font-size:.76rem;font-weight:700;letter-spacing:.02em;
+  border:1px solid var(--line);background:transparent;color:var(--ink-soft);
+  padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  transition:transform .18s ease,border-color .18s,color .18s,background .18s;
+}
+.btn:hover{transform:translateY(-1px);color:var(--ink);border-color:var(--ink-soft)}
+.btn:focus-visible,input:focus-visible{outline:2.5px solid var(--mango);outline-offset:3px}
+.btn[aria-pressed="true"]{background:var(--pool);border-color:var(--pool);color:#fff}
+.icon-btn{padding:7px 10px;font-size:.9rem;line-height:1}
+
+/* ---------- hero ---------- */
+.hero{padding:46px 4px 26px;max-width:660px}
+.eyebrow{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--pool);display:flex;align-items:center;gap:9px;margin-bottom:16px;
+}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--pool);border-radius:2px;animation:grow 1.1s .1s both cubic-bezier(.2,.9,.2,1)}
+@keyframes grow{from{width:0;opacity:0}to{width:26px;opacity:1}}
+h1{
+  font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:.98;
+  font-size:clamp(2.5rem,9vw,4.4rem);margin:0 0 18px;
+}
+h1 .em{
+  background:linear-gradient(100deg,var(--mango),var(--guava) 45%,var(--plum));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;animation:sweep 9s ease-in-out infinite;
+}
+@keyframes sweep{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.lede{font-size:1.06rem;color:var(--ink-soft);margin:0 0 8px;max-width:52ch}
+.lede strong{color:var(--ink);font-weight:700}
+
+/* hero load sequence */
+.hin{opacity:0;transform:translateY(18px);animation:rise .72s cubic-bezier(.2,.9,.2,1) var(--d,0s) both}
+
+/* highlighter sweep */
+.hl{
+  color:var(--ink);font-weight:600;padding:0 3px;
+  background-image:linear-gradient(var(--hlc),var(--hlc));
+  background-repeat:no-repeat;background-position:0 84%;background-size:0% 40%;
+  animation:swipe 1s cubic-bezier(.25,.9,.3,1) var(--d,0s) both;
+}
+@keyframes swipe{to{background-size:100% 40%}}
+
+/* the day, end to end */
+.daybar{margin:30px 0 4px;max-width:600px}
+.db-labels{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.db-labels b{color:var(--ink);font-weight:500}
+.db-mid{letter-spacing:.04em;text-transform:none;opacity:.7}
+.db-track{position:relative;height:8px;border-radius:99px;background:var(--line)}
+.db-fill{
+  position:absolute;inset:0;border-radius:99px;transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,var(--mango),var(--guava) 32%,var(--pool) 58%,var(--plum) 82%,var(--night));
+  animation:fillbar 1.5s cubic-bezier(.3,.9,.25,1) .4s both;
+}
+@keyframes fillbar{to{transform:scaleX(1)}}
+.db-now{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);
+  transition:left .9s cubic-bezier(.3,.9,.25,1);animation:appear .6s 1.75s both}
+@keyframes appear{from{opacity:0}to{opacity:1}}
+.db-pip{display:block;width:13px;height:13px;border-radius:50%;background:var(--card);
+  border:3px solid var(--ink);box-shadow:0 0 0 3px var(--paper);animation:pip 2.6s ease-out 2.3s infinite}
+@keyframes pip{0%{box-shadow:0 0 0 3px var(--paper),0 0 0 3px color-mix(in srgb,var(--ink) 40%,transparent)}
+  70%{box-shadow:0 0 0 3px var(--paper),0 0 0 15px transparent}
+  100%{box-shadow:0 0 0 3px var(--paper),0 0 0 15px transparent}}
+.db-now em{position:absolute;left:50%;top:19px;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--mono);font-style:normal;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.db-now.at-start em{left:0;transform:none}
+.db-now.at-end em{left:auto;right:0;transform:none}
+
+/* vitals */
+.vitals{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:34px 0 28px;padding:0;max-width:600px}
+.vitals li{display:flex;flex-direction:column;gap:3px;padding:11px 0 0;border-top:2px solid var(--v)}
+.vitals b{font-family:var(--display);font-weight:800;font-size:clamp(1.45rem,5.6vw,2.15rem);
+  letter-spacing:-.045em;line-height:1;color:var(--v);font-variant-numeric:tabular-nums}
+.vitals span{font-family:var(--mono);font-size:.63rem;line-height:1.35;letter-spacing:.02em;color:var(--ink-soft)}
+
+/* two doors */
+.doors-note{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:26px 0 9px}
+.doors{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;max-width:600px}
+.door{flex:1 1 210px;position:relative;overflow:hidden;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;padding:12px 15px;box-shadow:var(--shadow);
+  transition:transform .22s ease,border-color .22s ease}
+.door::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pool)}
+.door.alt::before{background:var(--mango)}
+.door:hover{transform:translateY(-3px);border-color:var(--ink-soft)}
+.door i{font-family:var(--mono);font-style:normal;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.door b{display:block;font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:-.025em;margin-top:4px}
+.door.alt b{font-size:.98rem}
+.or{align-self:center;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* the stamp */
+.stamp{display:inline-block;margin:30px 0 0;padding:15px 22px;border-radius:15px;
+  border:2px dashed var(--line);border-color:color-mix(in srgb,var(--guava) 52%,transparent);
+  background:color-mix(in srgb,var(--guava) 7%,transparent);
+  animation:stamp .75s cubic-bezier(.2,1.35,.35,1) 2.05s both}
+.stamp b{display:block;font-family:var(--display);font-weight:800;letter-spacing:-.035em;
+  font-size:clamp(1.2rem,4.6vw,1.55rem);line-height:1.1}
+.stamp span{font-size:.88rem;color:var(--ink-soft)}
+@keyframes stamp{
+  0%{opacity:0;transform:rotate(-7deg) scale(1.28)}
+  60%{opacity:1;transform:rotate(-.3deg) scale(.975)}
+  100%{opacity:1;transform:rotate(-1.2deg) scale(1)}
+}
+
+/* label above the anchors */
+.mini-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);margin:44px 0 10px}
+
+/* ---------- three anchors ---------- */
+.anchors{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0 42px}
+.anchor{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px;display:flex;gap:11px;align-items:flex-start;box-shadow:var(--shadow);
+}
+.anchor .g{font-size:1.15rem;line-height:1.2}
+.anchor p{margin:0;font-size:.86rem;color:var(--ink-soft)}
+.anchor b{display:block;color:var(--ink);font-size:.9rem;font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+
+/* ---------- section heads ---------- */
+.sec{margin:56px 0 20px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sec h2{font-family:var(--display);font-weight:800;font-size:1.5rem;letter-spacing:-.025em;margin:0}
+.sec span{font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);letter-spacing:.06em}
+
+/* ---------- the day spine ---------- */
+.spine{list-style:none;margin:0;padding:0}
+.block{
+  display:grid;grid-template-columns:26px 1fr;
+  grid-template-areas:"node time" "node card";
+  column-gap:14px;padding-bottom:14px;
+}
+.node{grid-area:node;position:relative}
+.node::before{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);
+  top:12px;bottom:-14px;width:2px;border-radius:2px;
+  background:linear-gradient(var(--c),var(--c2,var(--c)));opacity:.5;
+}
+.block:last-child .node::before{display:none}
+.dot{
+  position:absolute;left:50%;top:12px;transform:translate(-50%,-50%);
+  width:11px;height:11px;border-radius:50%;background:var(--paper);
+  border:2.5px solid var(--c);z-index:2;transition:background .3s,transform .3s}
+.block.done .dot{background:var(--c);transform:translate(-50%,-50%) scale(1.15)}
+.block.now .dot{animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 55%,transparent)}
+  70%{box-shadow:0 0 0 13px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+.meta{grid-area:time;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px 0 7px}
+.t{font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--ink)}
+.dur{font-family:var(--mono);font-size:.68rem;color:var(--ink-soft)}
+.tag{
+  font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--c);border:1px solid var(--line);
+  border-color:color-mix(in srgb,var(--c) 40%,transparent);
+  background:transparent;
+  background:color-mix(in srgb,var(--c) 9%,transparent);
+  padding:3px 8px;border-radius:999px;
+}
+.nowtag{
+  font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#fff;background:var(--c);padding:3px 9px;border-radius:999px;display:none;
+}
+.block.now .nowtag{display:inline-block}
+
+.card{
+  grid-area:card;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+  transition:transform .22s ease,border-color .22s ease,opacity .35s ease;
+}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c);opacity:.85}
+.card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--c) 45%,var(--line))}
+.block.now .card{border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 14%,transparent),var(--shadow)}
+.card h3{font-family:var(--display);font-weight:700;font-size:1.06rem;letter-spacing:-.02em;margin:0 0 6px;padding-right:34px}
+.card p{margin:0;font-size:.92rem;color:var(--ink-soft)}
+.card p + p:not(.why):not(.optional-note){margin-top:8px}
+.why{margin-top:9px !important;font-size:.79rem !important;font-style:italic;color:var(--c) !important;opacity:.9}
+
+/* check */
+.check{position:absolute;top:14px;right:14px;cursor:pointer;display:grid;place-items:center}
+.check input{position:absolute;opacity:0;width:26px;height:26px;margin:0;cursor:pointer}
+.box{
+  width:22px;height:22px;border-radius:7px;border:2px solid var(--line);
+  display:grid;place-items:center;transition:all .2s cubic-bezier(.3,1.5,.4,1);
+}
+.box::after{content:"";width:9px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(.2);opacity:0;transition:all .2s cubic-bezier(.3,1.6,.4,1);margin-top:-2px}
+.check input:checked + .box{background:var(--c);border-color:var(--c);transform:scale(1.08)}
+.check input:checked + .box::after{transform:rotate(-45deg) scale(1);opacity:1}
+.block.done .card h3{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--c) 60%,transparent);text-decoration-thickness:1.5px}
+.block.done .card{opacity:.62}
+
+/* gentle mode */
+.optional-note{display:none;margin-top:9px;font-family:var(--mono);font-size:.72rem;color:var(--guava)}
+body.gentle .block[data-optional] .optional-note{display:block}
+body.gentle .block[data-optional] .card{opacity:.55;border-style:dashed}
+body.gentle .block[data-optional].done .card{opacity:.5}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px)}
+.rv.in{animation:rise .62s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ---------- week strip ---------- */
+.week{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:10px}
+.day{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;
+  box-shadow:var(--shadow);transition:transform .2s ease;
+}
+.day:hover{transform:translateY(-3px)}
+.day i{font-family:var(--mono);font-style:normal;font-size:.68rem;letter-spacing:.14em;color:var(--pool);text-transform:uppercase}
+.day b{display:block;font-family:var(--display);font-weight:700;font-size:.96rem;letter-spacing:-.015em;margin:5px 0 3px}
+.day p{margin:0;font-size:.8rem;color:var(--ink-soft)}
+.day.rest{background:linear-gradient(160deg,color-mix(in srgb,var(--mango) 16%,var(--card)),var(--card))}
+
+/* ---------- horizons ---------- */
+.horizons{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.hz{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:transform .22s ease;
+}
+.hz:hover{transform:translateY(-3px)}
+.hz::after{
+  content:"";position:absolute;left:20px;right:20px;top:0;height:3px;border-radius:0 0 3px 3px;
+  background:var(--h);
+}
+.hz i{font-family:var(--mono);font-style:normal;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--h)}
+.hz h3{font-family:var(--display);font-weight:800;font-size:1.1rem;letter-spacing:-.02em;margin:6px 0 12px}
+.hz ul{margin:0;padding-left:16px}
+.hz li{font-size:.87rem;color:var(--ink-soft);margin-bottom:8px}
+.hz li b{color:var(--ink)}
+
+/* ---------- panels ---------- */
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:16px}
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;box-shadow:var(--shadow);
+}
+.panel h3{font-family:var(--display);font-weight:800;font-size:1.12rem;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.panel .sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+.panel ul{margin:0;padding-left:18px}
+.panel li{font-size:.88rem;color:var(--ink-soft);margin-bottom:7px}
+.panel li b{color:var(--ink)}
+.panel p{font-size:.88rem;color:var(--ink-soft);margin:0 0 10px}
+
+/* hobby jar */
+.jar{text-align:center}
+.jar-out{
+  font-family:var(--display);font-weight:700;font-size:1.14rem;letter-spacing:-.02em;
+  min-height:4em;display:grid;place-items:center;padding:14px;margin:6px 0 14px;
+  border-radius:14px;border:2px dashed color-mix(in srgb,var(--guava) 45%,transparent);
+  background:color-mix(in srgb,var(--guava) 8%,transparent);
+}
+.jar-out.pop{animation:pop .45s cubic-bezier(.3,1.4,.4,1)}
+@keyframes pop{0%{transform:scale(.92);opacity:.3}100%{transform:scale(1);opacity:1}}
+.jar .btn{background:var(--guava);border-color:var(--guava);color:#fff;font-size:.82rem;padding:9px 18px}
+.jar .btn:hover{color:#fff}
+
+/* rescue */
+.rescue{background:linear-gradient(155deg,color-mix(in srgb,var(--plum) 14%,var(--card)),var(--card))}
+.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+.steps li{counter-increment:s;padding-left:34px;position:relative;margin-bottom:11px;font-size:.89rem}
+.steps li::before{
+  content:counter(s);position:absolute;left:0;top:0;width:23px;height:23px;border-radius:50%;
+  display:grid;place-items:center;font-family:var(--mono);font-size:.72rem;
+  background:var(--plum);color:#fff;
+}
+
+/* footer */
+.foot{margin-top:60px;padding-top:26px;border-top:1px solid var(--line);text-align:center}
+.foot p{font-size:.85rem;color:var(--ink-soft);max-width:44ch;margin:0 auto 10px}
+.foot .sig{font-family:var(--display);font-weight:800;font-size:1.3rem;letter-spacing:-.03em;color:var(--ink)}
+
+/* ---------- desktop ---------- */
+@media (min-width:760px){
+  .wrap{padding:0 32px 110px}
+  .block{grid-template-columns:104px 26px 1fr;grid-template-areas:"time node card";column-gap:16px;padding-bottom:18px}
+  .meta{justify-content:flex-end;padding:12px 0 0;align-items:flex-start;flex-direction:column;gap:5px}
+  .meta > *{align-self:flex-end}
+  .node::before{top:20px;bottom:-18px}
+  .dot{top:20px}
+  .card{padding:18px 22px}
+  .card h3{font-size:1.12rem}
+  .hero{padding:60px 4px 30px}
+}
+@media (min-width:1080px){
+  .block{grid-template-columns:120px 26px 1fr}
+}
+
+/* ---------- a11y / print ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .rv,.hin{opacity:1;transform:none}
+  .hl{background-size:100% 40%}
+  .db-fill{transform:scaleX(1)}
+  .stamp{opacity:1;transform:rotate(-1.2deg)}
+}
+@media print{
+  .sky,.bar,.jar .btn,.db-now{display:none}
+  body{background:#fff}
+  .card,.panel,.day,.anchor,.hz,.door{box-shadow:none;break-inside:avoid}
+  .rv,.hin{opacity:1 !important;transform:none !important}
+  .db-fill{transform:scaleX(1)}
+  .hl{background-size:100% 40%}
+  .stamp{opacity:1 !important;transform:none !important}
+}
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
+</div>
+
+<div class="wrap">
+
+  <!-- top bar -->
+  <div class="bar">
+    <div class="ring" title="Blocks ticked off today">
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+        <circle class="trk" cx="19" cy="19" r="15" fill="none" stroke-width="3.5"></circle>
+        <circle class="val" id="ringVal" cx="19" cy="19" r="15" fill="none" stroke-width="3.5"
+                stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
+      </svg>
+      <b id="ringNum">0</b>
+    </div>
+    <span class="who">Diya’s day</span>
+    <span class="clock" id="clock">--:--</span>
+    <button class="btn" id="gentleBtn" aria-pressed="false">Gentle day</button>
+    <button class="btn icon-btn" id="themeBtn" aria-label="Switch between light and dark">☾</button>
+  </div>
+
+  <!-- hero -->
+  <header class="hero">
+    <p class="eyebrow">Post-exam season · Molecular Biology</p>
+    <h1 class="hin" style="--d:.05s">A day that <span class="em">holds you</span>, not one that grades you.</h1>
+
+    <div class="daybar hin" style="--d:.3s">
+      <div class="db-labels">
+        <b>9:30 AM</b><span class="db-mid">nine-thirty to half past one</span><b>1:30 AM</b>
+      </div>
+      <div class="db-track">
+        <div class="db-fill"></div>
+        <div class="db-now" id="dbNow"><span class="db-pip"></span><em>you are here</em></div>
+      </div>
+    </div>
+
+    <ul class="vitals hin" style="--d:.5s">
+      <li style="--v:var(--plum)"><b data-count="4">0</b><span>hours of<br>real study</span></li>
+      <li style="--v:var(--guava)"><b data-count="3">0</b><span>proper<br>meals</span></li>
+      <li style="--v:var(--mango)"><b data-count="90">0</b><span>minutes that<br>are only yours</span></li>
+      <li style="--v:var(--pool)"><b data-count="8">0</b><span>hours of<br>sleep</span></li>
+    </ul>
+
+    <p class="lede hin" style="--d:.7s">
+      Written for the strange, open weeks after
+      <span class="hl" style="--hlc:color-mix(in srgb,var(--mango) 34%,transparent);--d:1.15s">GATE and CSIR-NET</span> —
+      when the syllabus is behind you, the results aren’t out yet, and
+      <span class="hl" style="--hlc:color-mix(in srgb,var(--pool) 26%,transparent);--d:1.6s">nobody is setting the timetable but you</span>.
+    </p>
+
+    <p class="doors-note hin" style="--d:.9s">Two doors, both good</p>
+    <div class="doors hin" style="--d:1s">
+      <div class="door">
+        <i>Door one</i>
+        <b>JRF → TIFR · IISER · IISc</b>
+      </div>
+      <span class="or">or</span>
+      <div class="door alt">
+        <i>Door two</i>
+        <b>Regulatory affairs, pharma</b>
+      </div>
+    </div>
+
+    <div class="stamp">
+      <b>A menu, not a contract.</b>
+      <span>Do the parts that fit today.</span>
+    </div>
+  </header>
+
+  <!-- anchors -->
+  <p class="mini-label">Non-negotiables, whatever else the day does</p>
+  <div class="anchors">
+    <div class="anchor"><span class="g">🥣</span><p><b>Fed properly</b>Protein at every meal, a fruit, a vegetable, a refilled bottle.</p></div>
+    <div class="anchor"><span class="g">☀️</span><p><b>Twenty minutes moving</b>No gym needed. Floor, stairs, street, daylight.</p></div>
+    <div class="anchor"><span class="g">📞</span><p><b>One voice</b>Mom or Di or a friend. Living alone makes this a task, not a mood.</p></div>
+  </div>
+
+  <!-- the day -->
+  <div class="sec"><h2>The day</h2><span>9:30 AM → 1:30 AM IST · tick as you go</span></div>
+
+  <ul class="spine" id="spine">
+
+    <li class="block rv" data-start="570" style="--c:var(--mango);--c2:var(--pool)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">9:30 AM</span><span class="dur">15 min</span><span class="tag">Wake</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Open the window before the phone</h3>
+        <p>Sit up, drink a full glass of water, let real light in, three slow breaths. The phone can wait ten minutes.</p>
+        <p class="why">Same wake time every day, weekends included — it’s what keeps a 1:30 AM bedtime from drifting to 3.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="585" style="--c:var(--pool);--c2:var(--guava)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">9:45 AM</span><span class="dur">20 min</span><span class="tag">Move</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Twenty minutes on the floor</h3>
+        <p>Cat-cow, forward fold, a spinal twist, hip openers, squats holding the wall, calf raises on the stairs. Or three songs of dancing badly.</p>
+        <p>Getting fitter starts here, not at a gym: same twenty minutes daily for two weeks, then make it harder — more reps, longer walk, a flight of stairs more.</p>
+        <p class="why">Consistency you don’t have to travel for is the kind that survives a results week.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="615" style="--c:var(--guava);--c2:var(--plum)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">10:15 AM</span><span class="dur">30 min</span><span class="tag">Eat</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Breakfast, sitting down, no screen</h3>
+        <p>Something with protein in it: eggs, curd with poha, oats and peanut butter, paneer bhurji, chana. Then write the day in three lines on paper.</p>
+        <p class="why">Three lines, not twelve. A short list is a list you finish.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="645" style="--c:var(--plum);--c2:var(--pool)" data-gentle-dur="60 min">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">10:45 AM</span><span class="dur">90 min</span><span class="tag">Deep work I</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Hardest thing first — core molecular biology</h3>
+        <p>Phone in another room, face down, silent. One tab, one notebook, one topic: replication and repair, gene regulation, signalling, immunology, techniques and their controls.</p>
+        <p>Rotate the mode: revise a weak unit → work previous-year questions properly → read one paper end to end.</p>
+        <p class="why">This block alone is the difference between a waiting month and a month of progress. Protect it like a class you paid for.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="735" style="--c:var(--pool);--c2:var(--plum)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">12:15 PM</span><span class="dur">25 min</span><span class="tag">Breathe</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>A break that actually rests you</h3>
+        <p>Balcony, water, a fruit, clear one small surface, roll your shoulders out. Scrolling for 25 minutes is not this.</p>
+        <p class="why">Stand up, look at something far away. Your eyes and your back are also doing a PhD.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="760" style="--c:var(--plum);--c2:var(--guava)" data-gentle-dur="45 min">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">12:40 PM</span><span class="dur">90 min</span><span class="tag">Deep work II</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Build something for future-you</h3>
+        <p>One track per day, rotating:</p>
+        <p><b>Skills</b> — Python for handling and plotting data, LaTeX, image analysis, watching technique videos until the controls make sense.</p>
+        <p><b>The seat</b> — shortlist labs at TIFR, IISER and IISc, read a professor’s three latest papers, draft one honest email.</p>
+        <p><b>The second door</b> — regulatory affairs, learned properly: what CDSCO actually does, ICH guidelines, what sits inside a dossier, one real job posting read line by line.</p>
+        <p class="why">Interviews reward the person who can say “I read your 2025 paper, and here’s what I’d ask next.” So do job interviews.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="855" style="--c:var(--guava);--c2:var(--mango)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">2:15 PM</span><span class="dur">45 min</span><span class="tag">Eat</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Cook simple, eat properly</h3>
+        <p>Dal-rice-sabzi, khichdi, rajma-chawal, egg curry, one-pot pulao — with something green on the plate. Put a documentary on while you eat if you want; this meal is allowed to be easy.</p>
+        <p class="why">Cooking for one gets skipped first. Batch on Sunday so the tired days still get fed.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="900" style="--c:var(--mango);--c2:var(--plum)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">3:00 PM</span><span class="dur">40 min</span><span class="tag">Rest</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Off duty, properly</h3>
+        <p>A 20–30 minute nap, or lie flat with music. No guilt attached — set one alarm for 40 minutes and forget about it.</p>
+        <p class="why">Rest is scheduled here so it doesn’t have to steal the evening.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="960" style="--c:var(--plum);--c2:var(--pool)" data-optional data-gentle-dur="skip">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">4:00 PM</span><span class="dur">60 min</span><span class="tag">Light study</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>The easy academic hour</h3>
+        <p>Low effort, still counts: tidy your notes, make flashcards, sort the PDF library, an NPTEL lecture at 1.25×, redraw one pathway from memory and check what you missed.</p>
+        <p class="why">This is the flex hour. On a heavy day it goes first, and nothing breaks.</p>
+        <p class="optional-note">↳ Skipping this today. Guilt-free.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1035" style="--c:var(--pool);--c2:var(--mango)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">5:15 PM</span><span class="dur">30 min</span><span class="tag">Air</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Chai and the outside world</h3>
+        <p>Tea, then get out: around the block, the terrace, four flights of stairs, the corner shop. Ten minutes of evening light counts.</p>
+        <p class="why">Leaving the house once a day is the quiet thing that keeps living alone from turning into being alone.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1080" style="--c:var(--mango);--c2:var(--guava)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">6:00 PM</span><span class="dur">90 min</span><span class="tag">Hobby</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>The part of the day that’s only yours</h3>
+        <p>Paint, a film, a whodunit, a documentary, a flight tracked across a continent — or thirty minutes on an instrument, since that’s a long game worth starting now. The jar below picks for you on indecisive days.</p>
+        <p class="why">Having one thing that isn’t about results is how the waiting stays bearable.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1170" style="--c:var(--guava);--c2:var(--pool)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">7:30 PM</span><span class="dur">60 min</span><span class="tag">Eat</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Dinner, then close the kitchen</h3>
+        <p>Lighter than lunch: roti-sabzi, soup and toast, curd rice, upma, eggs and salad. Soak the dal, set out tomorrow’s breakfast, ten minutes of tidying, lights off in the kitchen.</p>
+        <p class="why">Eating well before 9 PM is most of what makes a 1:30 AM bedtime feel fine.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1245" style="--c:var(--pool);--c2:var(--plum)" data-optional data-gentle-dur="15 min">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">8:45 PM</span><span class="dur">45 min</span><span class="tag">Life admin</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>The boring hour that buys you calm</h3>
+        <p>Forms, the one email you’ve been avoiding, bills, laundry, groceries, recharge, ten minutes of putting the room back. Then one look at the results portals — once, then close the tab.</p>
+        <p class="why">One check a day, at a fixed time. Refreshing a results page fourteen times doesn’t make it load faster.</p>
+        <p class="optional-note">↳ Fifteen minutes today. Just the urgent one.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1290" style="--c:var(--plum);--c2:var(--mango)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">9:30 PM</span><span class="dur">45 min</span><span class="tag">People</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Call Mom, or Di, or a friend</h3>
+        <p>A voice, not a text thread. And once a week, the harder version: a proper conversation with someone whose head works nothing like yours — stay past the first disagreement and ask one more question instead of answering.</p>
+        <p class="why">Talking about your subject out loud is also interview practice. Convenient.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1350" style="--c:var(--mango);--c2:var(--plum)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">10:30 PM</span><span class="dur">90 min</span><span class="tag">Free</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Unscheduled on purpose</h3>
+        <p>A film, a series, the true crime rabbit hole, the novel, absolutely nothing. No box to tick here except this one.</p>
+        <p class="why">A day with no unclaimed time in it is a day you’ll quietly start avoiding.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1440" style="--c:var(--plum);--c2:var(--night)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">12:00 AM</span><span class="dur">45 min</span><span class="tag">Wind down</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Dim everything</h3>
+        <p>Screens warm and low, wash up, skincare, clothes out for tomorrow, water by the bed. Then four lines: one good thing, one worry parked till morning, one thing you’ll start with — and one moment you answered fast today, and what watching instead would have looked like.</p>
+        <p class="why">Writing the worry down is how you stop rehearsing it at 2 AM. The fourth line is how observing becomes a habit rather than a resolution.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1485" style="--c:var(--night);--c2:var(--night)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">12:45 AM</span><span class="dur">45 min</span><span class="tag">Read</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>The thriller in bed, phone across the room</h3>
+        <p>Paper if you have it, e-reader on warm if you don’t. Anything that isn’t your syllabus and isn’t a feed.</p>
+        <p class="why">The phone on the far side of the room is the single highest-return habit on this whole sheet.</p>
+      </div>
+    </li>
+
+    <li class="block rv" data-start="1530" style="--c:var(--night)">
+      <div class="node"><span class="dot"></span></div>
+      <div class="meta"><span class="t">1:30 AM</span><span class="dur">8 hours</span><span class="tag">Sleep</span><span class="nowtag">Now</span></div>
+      <div class="card">
+        <label class="check"><input type="checkbox"><span class="box"></span></label>
+        <h3>Lights out</h3>
+        <p>Eight full hours, back round to 9:30. This is the block everything else is built on — not the one to borrow from.</p>
+        <p class="why">Goodnight, Diya. Tomorrow is a menu again.</p>
+      </div>
+    </li>
+
+  </ul>
+
+  <!-- week -->
+  <div class="sec"><h2>A shape for the week</h2><span>same day, different flavour</span></div>
+  <div class="week">
+    <div class="day rv"><i>Mon</i><b>Set the week</b><p>Plan the seven days, then attack the topic you’ve been dodging.</p></div>
+    <div class="day rv"><i>Tue</i><b>Reading day</b><p>One paper, properly. Notes in your own words, not highlights.</p></div>
+    <div class="day rv"><i>Wed</i><b>Skill day</b><p>Python, plotting, LaTeX, techniques. Small and hands-on.</p></div>
+    <div class="day rv"><i>Thu</i><b>Say it out loud</b><p>Explain your dissertation to an empty room for ten minutes. Record it once.</p></div>
+    <div class="day rv"><i>Fri</i><b>Doors</b><p>Two emails to labs, and half an hour on the regulatory-affairs track.</p></div>
+    <div class="day rv"><i>Sat</i><b>Half day</b><p>Light study, errands, and one thing outside the house that’s purely fun.</p></div>
+    <div class="day rest rv"><i>Sun</i><b>Truly off</b><p>Batch cook, laundry, reset the room, no study guilt at all.</p></div>
+  </div>
+
+  <!-- horizons -->
+  <div class="sec"><h2>Horizons</h2><span>why the small days matter</span></div>
+  <div class="horizons">
+    <div class="hz rv" style="--h:var(--mango)">
+      <i>This season</i>
+      <h3>Small, repeated, boring</h3>
+      <ul>
+        <li><b>Move every day</b> — without needing a gym to allow it.</li>
+        <li><b>Eat like someone who matters</b> — protein, something green, three meals.</li>
+        <li><b>Observe before answering.</b> One extra beat, then speak.</li>
+        <li><b>Stay curious past disagreement</b> with people who think differently.</li>
+      </ul>
+    </div>
+    <div class="hz rv" style="--h:var(--pool)">
+      <i>This year</i>
+      <h3>Two doors, both good</h3>
+      <ul>
+        <li><b>JRF</b>, then a seat — TIFR, IISER, IISc.</li>
+        <li><b>Or regulatory affairs</b>, walked into on purpose with the vocabulary already learned.</li>
+        <li>Whichever opens, be the candidate who prepared for both.</li>
+      </ul>
+    </div>
+    <div class="hz rv" style="--h:var(--plum)">
+      <i>Further out</i>
+      <h3>The long game</h3>
+      <ul>
+        <li>A degree or a title that’s properly yours, and upward from there.</li>
+        <li><b>Fitter</b> — the version built out of ordinary days like this one.</li>
+        <li><b>More than one instrument.</b> Start with thirty minutes a week.</li>
+        <li>A car. And a city you chose, rather than one you ended up in.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- panels -->
+  <div class="sec"><h2>Bits that keep it running</h2><span>food, joy, and bad days</span></div>
+  <div class="panels">
+
+    <div class="panel rv">
+      <h3><span>🍚</span> Feeding one person well</h3>
+      <p class="sub">Cooking for one, honestly</p>
+      <ul>
+        <li><b>Protein at every meal.</b> Eggs, dal, curd, paneer, chana, soya, chicken or fish if you eat it. This is the single change that makes the biggest difference.</li>
+        <li><b>Sunday batch:</b> one dal, one dry sabzi, boiled eggs, rice. Three days handled.</li>
+        <li><b>Always stocked:</b> eggs, curd, atta, oats, poha, peanut butter, bananas, onions, potatoes, frozen peas.</li>
+        <li><b>No-cook nights:</b> curd rice, bread-omelette, upma, or Maggi with two eggs and a handful of spinach thrown in.</li>
+        <li><b>Three meals, not two.</b> Skipping lunch is what makes 4 PM feel like failure.</li>
+      </ul>
+    </div>
+
+    <div class="panel jar rv">
+      <h3><span>🫙</span> The hobby jar</h3>
+      <p class="sub">For when you can’t decide</p>
+      <div class="jar-out" id="jarOut" aria-live="polite">Tap the button and just do that.</div>
+      <button class="btn" id="jarBtn">Pick something for me</button>
+    </div>
+
+    <div class="panel rescue rv">
+      <h3><span>🪫</span> When the day falls apart</h3>
+      <p class="sub">The minimum version</p>
+      <ol class="steps">
+        <li>Twenty-five minutes on one thing. A timer, one task, that’s it.</li>
+        <li>One cooked meal and a full bottle of water.</li>
+        <li>Step outside once, or call one person.</li>
+      </ol>
+      <p style="margin-top:14px">Do those three and the day counts. Tick nothing else. One rough day is data, not a pattern — and if the flat, heavy feeling settles in for a couple of weeks, that’s worth saying out loud to Mom, to Di, or to a counsellor.</p>
+    </div>
+
+  </div>
+
+  <footer class="foot">
+    <p>Results will say what they say. The day is still yours to spend well.</p>
+    <p class="sig">Go gently, Diya.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- hobby jar: add or edit freely ---- */
+  var hobbies = [
+    "One documentary, lights low, phone face down",
+    "A film from the watchlist — properly, no second screen",
+    "Forty minutes with paint and no plan for the outcome",
+    "Thirty pages of the whodunit on your table",
+    "Track a long-haul flight and read about the aircraft flying it",
+    "An air-crash investigation breakdown, and actually take notes",
+    "Learn the first eight bars of something on an instrument",
+    "Rewatch a favourite film and notice one thing you never noticed",
+    "A director’s early work, in order",
+    "Sketch what’s in front of you, badly, for twenty minutes",
+    "Read about one airline’s history — routes, liveries, why it folded",
+    "A cold case write-up, then look up what the evidence actually said",
+    "Paint something for the wall, not for anyone’s approval",
+    "Call the friend you keep meaning to call",
+    "Cook something you’ve never cooked before",
+    "Journal three pages and don’t re-read them"
+  ];
+
+  var $ = function(s,c){ return (c||document).querySelector(s); };
+  var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
+
+  var blocks = $$(".block");
+  var calm = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  /* ---- figures that count up in the hero ---- */
+  function countUp(){
+    $$(".vitals b").forEach(function(el, i){
+      var target = parseInt(el.dataset.count, 10) || 0;
+      if (calm){ el.textContent = target; return; }
+      setTimeout(function(){
+        var t0 = null, dur = 850;
+        requestAnimationFrame(function step(ts){
+          if (t0 === null) t0 = ts;
+          var p = Math.min(1, (ts - t0) / dur);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(step);
+        });
+      }, 950 + i * 120);
+    });
+  }
+
+  /* ---- IST clock, independent of device timezone ---- */
+  function istNow(){
+    var d = new Date();
+    return new Date(d.getTime() + (d.getTimezoneOffset() + 330) * 60000);
+  }
+
+  /* ---- progress ring ---- */
+  var C = 2 * Math.PI * 15;
+  var ringVal = $("#ringVal"), ringNum = $("#ringNum");
+  ringVal.setAttribute("stroke-dasharray", C.toFixed(1));
+  ringVal.setAttribute("stroke-dashoffset", C.toFixed(1));
+
+  function refreshRing(){
+    var boxes = $$(".check input");
+    var done = boxes.filter(function(b){ return b.checked; }).length;
+    ringVal.setAttribute("stroke-dashoffset", (C - (C * done / boxes.length)).toFixed(1));
+    ringNum.textContent = done;
+  }
+
+  $$(".check input").forEach(function(box){
+    box.addEventListener("change", function(){
+      box.closest(".block").classList.toggle("done", box.checked);
+      refreshRing();
+    });
+  });
+
+  /* ---- theme: auto by IST, manual override wins ---- */
+  var themeBtn = $("#themeBtn"), manualTheme = false;
+  function setTheme(t){
+    document.documentElement.dataset.theme = t;
+    themeBtn.textContent = t === "night" ? "☀" : "☾";
+  }
+  function autoTheme(){
+    if (manualTheme) return;
+    var h = istNow().getHours();
+    setTheme((h >= 19 || h < 7) ? "night" : "day");
+  }
+  themeBtn.addEventListener("click", function(){
+    manualTheme = true;
+    setTheme(document.documentElement.dataset.theme === "night" ? "day" : "night");
+  });
+
+  /* ---- clock + "now" block ---- */
+  function tick(){
+    var d = istNow();
+    var h = d.getHours(), mm = d.getMinutes();
+    var ampm = h < 12 ? "AM" : "PM";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    $("#clock").textContent = h12 + ":" + (mm < 10 ? "0" : "") + mm + " " + ampm + " IST";
+
+    var mins = h * 60 + mm;
+    if (mins < 570) mins += 1440;          // 12 AM–9:30 AM belongs to the night before
+    var current = null;
+    blocks.forEach(function(b){
+      if (parseInt(b.dataset.start, 10) <= mins) current = b;
+    });
+    blocks.forEach(function(b){ b.classList.toggle("now", b === current); });
+
+    /* marker on the hero day-bar: 9:30 AM → 1:30 AM spans 960 minutes */
+    var nowEl = $("#dbNow");
+    if (nowEl){
+      var pct = Math.max(0, Math.min(100, ((mins - 570) / 960) * 100));
+      nowEl.style.left = pct.toFixed(1) + "%";
+      nowEl.classList.toggle("at-start", pct < 9);
+      nowEl.classList.toggle("at-end", pct > 91);
+    }
+
+    autoTheme();
+  }
+
+  /* ---- gentle day ---- */
+  var gentleBtn = $("#gentleBtn"), gentle = false;
+  blocks.forEach(function(b){
+    var d = $(".dur", b);
+    if (d) b.dataset.fullDur = d.textContent;
+  });
+  gentleBtn.addEventListener("click", function(){
+    gentle = !gentle;
+    document.body.classList.toggle("gentle", gentle);
+    gentleBtn.setAttribute("aria-pressed", String(gentle));
+    gentleBtn.textContent = gentle ? "Gentle day: on" : "Gentle day";
+    blocks.forEach(function(b){
+      var d = $(".dur", b);
+      if (!d) return;
+      d.textContent = (gentle && b.dataset.gentleDur) ? b.dataset.gentleDur : b.dataset.fullDur;
+    });
+  });
+
+  /* ---- hobby jar ---- */
+  var jarOut = $("#jarOut"), last = -1;
+  $("#jarBtn").addEventListener("click", function(){
+    var i = last;
+    while (i === last && hobbies.length > 1) i = Math.floor(Math.random() * hobbies.length);
+    last = i;
+    jarOut.textContent = hobbies[i];
+    jarOut.classList.remove("pop");
+    void jarOut.offsetWidth;
+    jarOut.classList.add("pop");
+  });
+
+  /* ---- reveal on scroll ---- */
+  var items = $$(".rv");
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (!e.isIntersecting) return;
+        var idx = items.indexOf(e.target) % 6;
+        e.target.style.animationDelay = (idx * 70) + "ms";
+        e.target.classList.add("in");
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+    items.forEach(function(el){ io.observe(el); });
+  } else {
+    items.forEach(function(el){ el.classList.add("in"); });
+  }
+
+  refreshRing();
+  countUp();
+  tick();
+  setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>
