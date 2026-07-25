@@ -287,6 +287,12 @@ h1 .em{
   display:block;margin-top:5px;font-family:var(--mono);font-size:.6rem;
   letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
 }
+@media (max-width:380px){
+  .bday{padding:24px 16px}
+  .bday-countdown{gap:8px}
+  .bday-countdown div{min-width:56px;padding:10px 5px 8px}
+  .bday-countdown b{font-size:1.5rem}
+}
 .bday-msg{display:none;font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,4vw,1.8rem);letter-spacing:-.02em}
 .bday-btn{
   margin-top:20px;background:var(--guava);border-color:var(--guava);color:#fff;
