@@ -102,6 +102,7 @@ html[data-theme="night"] .orb{opacity:.22}
   .bar .clock{order:1;flex:0 0 auto}
   .bar .actions{order:2;flex:1 1 100%;justify-content:flex-end}
 }
+.avatar{width:32px;height:32px;flex:0 0 32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--line)}
 .ring{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;position:relative}
 .ring svg{transform:rotate(-90deg);display:block}
 .ring .trk{stroke:var(--line)}
@@ -119,7 +120,20 @@ html[data-theme="night"] .orb{opacity:.22}
 .icon-btn{padding:7px 10px;font-size:.9rem;line-height:1}
 
 /* ---------- hero ---------- */
-.hero{padding:46px 4px 26px;max-width:660px}
+.hero{padding:46px 4px 26px;display:grid;grid-template-columns:1fr;gap:20px}
+.hero-copy{max-width:660px}
+.hero-photo-frame{display:none}
+@media (min-width:900px){
+  .hero{grid-template-columns:1fr auto;align-items:start}
+  .hero-photo-frame{
+    display:block;justify-self:end;margin-top:44px;padding:10px;
+    background:var(--plum);border-radius:32px;box-shadow:var(--shadow);
+  }
+  .hero-photo{
+    display:block;width:260px;height:260px;
+    border-radius:24px;object-fit:cover;
+  }
+}
 .eyebrow{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
   color:var(--pool);display:flex;align-items:center;gap:9px;margin-bottom:16px;
@@ -435,6 +449,7 @@ body.gentle .block[data-optional].done .card{opacity:.5}
       </svg>
       <b id="ringNum">0</b>
     </div>
+    <img class="avatar" src="Assets/diya_dp.jpeg" alt="" onerror="this.remove()">
     <span class="who">Diya’s day</span>
     <span class="clock" id="clock">--:--</span>
     <div class="actions">
@@ -445,6 +460,7 @@ body.gentle .block[data-optional].done .card{opacity:.5}
 
   <!-- hero -->
   <header class="hero">
+    <div class="hero-copy">
     <p class="eyebrow">Post-exam season · Molecular Biology</p>
     <h1 class="hin" style="--d:.05s">A day that <span class="em">holds you</span>, not one that grades you.</h1>
 
@@ -488,6 +504,10 @@ body.gentle .block[data-optional].done .card{opacity:.5}
     <div class="stamp">
       <b>A menu, not a contract.</b>
       <span>Do the parts that fit today.</span>
+    </div>
+    </div>
+    <div class="hero-photo-frame">
+      <img class="hero-photo" src="Assets/diya_dp.jpeg" alt="" onerror="this.closest('.hero-photo-frame').remove()">
     </div>
   </header>
 
