@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101728">
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234B3C7E'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234B3C7E'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' font-weight='700' fill='white' text-anchor='middle'%3ED%3C/text%3E%3C/svg%3E">
 <title>Diya’s Daily Rhythm</title>
 
 <!--
@@ -115,9 +117,26 @@ html[data-theme="night"] .orb{opacity:.22}
   transition:transform .18s ease,border-color .18s,color .18s,background .18s;
 }
 .btn:hover{transform:translateY(-1px);color:var(--ink);border-color:var(--ink-soft)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn:disabled:hover{transform:none}
 .btn:focus-visible,input:focus-visible{outline:2.5px solid var(--mango);outline-offset:3px}
 .btn[aria-pressed="true"]{background:var(--pool);border-color:var(--pool);color:#fff}
 .icon-btn{padding:7px 10px;font-size:.9rem;line-height:1}
+
+.mood-picker{position:relative;display:inline-flex}
+.mood-picker::after{
+  content:"▾";position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  font-size:.62rem;color:var(--ink-soft);pointer-events:none;
+}
+.mood-picker select{
+  font-family:var(--body);font-size:.76rem;font-weight:700;letter-spacing:.02em;
+  border:1px solid var(--line);background:transparent;color:var(--ink-soft);
+  padding:7px 26px 7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  transition:border-color .18s,color .18s;
+}
+.mood-picker select:hover{color:var(--ink);border-color:var(--ink-soft)}
+.mood-picker select:focus-visible{outline:2.5px solid var(--mango);outline-offset:3px}
 
 /* ---------- hero ---------- */
 .hero{padding:46px 4px 26px;display:grid;grid-template-columns:1fr;gap:20px}
@@ -226,6 +245,90 @@ h1 .em{
   100%{opacity:1;transform:rotate(-1.2deg) scale(1)}
 }
 
+/* ---------- birthday countdown ---------- */
+.bday{
+  position:relative;overflow:hidden;margin:36px 0 46px;padding:28px 24px;
+  border-radius:26px;text-align:center;border:1px solid var(--line);box-shadow:var(--shadow);
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--mango) 20%,var(--card)),
+    color-mix(in srgb,var(--guava) 13%,var(--card)) 50%,
+    color-mix(in srgb,var(--plum) 18%,var(--card)));
+}
+.bday::before{
+  content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background:radial-gradient(circle at 15% 20%,color-mix(in srgb,var(--mango) 30%,transparent),transparent 45%),
+             radial-gradient(circle at 85% 80%,color-mix(in srgb,var(--plum) 30%,transparent),transparent 45%);
+}
+.bday-in{position:relative}
+.bday-eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--guava);margin:0 0 10px;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.bday-title{
+  font-family:var(--display);font-weight:800;letter-spacing:-.03em;margin:0 0 6px;
+  font-size:clamp(1.5rem,4.6vw,2.3rem);
+}
+.bday-title .em{
+  background:linear-gradient(100deg,var(--mango),var(--guava) 45%,var(--plum));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;animation:sweep 9s ease-in-out infinite;
+}
+.bday-date{font-family:var(--mono);font-size:.82rem;color:var(--ink-soft);letter-spacing:.05em;margin:0 0 22px}
+.bday-countdown{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.bday-countdown div{
+  min-width:66px;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:12px 8px 10px;box-shadow:var(--shadow);
+}
+.bday-countdown b{
+  display:block;font-family:var(--display);font-weight:800;font-size:1.85rem;letter-spacing:-.03em;
+  color:var(--ink);font-variant-numeric:tabular-nums;line-height:1;
+}
+.bday-countdown span{
+  display:block;margin-top:5px;font-family:var(--mono);font-size:.6rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
+}
+.bday-msg{display:none;font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,4vw,1.8rem);letter-spacing:-.02em}
+.bday-btn{
+  margin-top:20px;background:var(--guava);border-color:var(--guava);color:#fff;
+  font-size:.82rem;padding:10px 22px;
+}
+.bday-btn:hover{color:#fff}
+.bday-btn.pop{animation:pop .5s cubic-bezier(.3,1.4,.4,1)}
+.confetti-canvas{position:fixed;inset:0;z-index:999;pointer-events:none}
+
+/* candles */
+.candles{display:flex;justify-content:center;gap:16px;margin:22px 0 4px}
+.candle{display:flex;flex-direction:column;align-items:center}
+.candle .smoke{
+  width:3px;height:0;border-radius:3px;opacity:0;margin-bottom:2px;
+  background:linear-gradient(var(--ink-soft),transparent);
+}
+.candle .wick-flame{
+  width:12px;height:20px;margin-bottom:-3px;
+  border-radius:50% 50% 50% 50% / 65% 65% 35% 35%;
+  background:radial-gradient(circle at 50% 75%,#fff6c8,#ffb703 55%,#f2665e 95%);
+  box-shadow:0 0 10px 3px rgba(255,183,3,.55);
+  transform-origin:bottom center;
+  animation:flicker 1.3s ease-in-out infinite;
+  transition:opacity .3s ease,transform .4s ease;
+}
+@keyframes flicker{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.08,1.16) rotate(4deg)}}
+.candle .num{
+  width:34px;height:64px;border-radius:8px;display:grid;place-items:center;
+  font-family:var(--display);font-weight:800;font-size:1.5rem;color:#fff;
+  box-shadow:var(--shadow);
+}
+.candle:nth-child(1) .num{background:linear-gradient(160deg,var(--mango),var(--guava))}
+.candle:nth-child(2) .num{background:linear-gradient(160deg,var(--plum),var(--pool))}
+.candles.out .wick-flame{opacity:0;transform:scale(.15) translateY(4px)}
+.candles.out .smoke{animation:smokeRise 1.3s ease-out forwards}
+@keyframes smokeRise{
+  0%{height:0;opacity:.55}
+  55%{opacity:.4}
+  100%{height:34px;opacity:0;transform:translateY(-16px) translateX(6px)}
+}
+.wish-msg{display:none;margin:14px 0 0;font-family:var(--display);font-weight:700;font-size:1.02rem;color:var(--ink-soft)}
+
 /* label above the anchors */
 .mini-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--ink-soft);margin:44px 0 10px}
@@ -319,6 +422,19 @@ h1 .em{
 body.gentle .block[data-optional] .optional-note{display:block}
 body.gentle .block[data-optional] .card{opacity:.55;border-style:dashed}
 body.gentle .block[data-optional].done .card{opacity:.5}
+
+/* focus mode */
+body.mood-focus .sky{display:none}
+body.mood-focus .week,body.mood-focus .horizons,body.mood-focus .panels,body.mood-focus .anchors{
+  opacity:.4;filter:saturate(.7);transition:opacity .4s ease,filter .4s ease;
+}
+body.mood-focus .block:not([data-focus]) .card{opacity:.68}
+
+/* low battery mode */
+body.mood-low .rescue{
+  border-color:var(--plum);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--plum) 18%,transparent),var(--shadow);
+}
 
 /* reveal */
 .rv{opacity:0;transform:translateY(22px)}
@@ -436,6 +552,7 @@ body.gentle .block[data-optional].done .card{opacity:.5}
 <div class="sky" aria-hidden="true">
   <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
 </div>
+<canvas class="confetti-canvas" id="confettiCanvas" aria-hidden="true"></canvas>
 
 <div class="wrap">
 
@@ -453,7 +570,14 @@ body.gentle .block[data-optional].done .card{opacity:.5}
     <span class="who">Diya’s day</span>
     <span class="clock" id="clock">--:--</span>
     <div class="actions">
-      <button class="btn" id="gentleBtn" aria-pressed="false">Gentle day</button>
+      <div class="mood-picker">
+        <select id="moodSelect" aria-label="Current mood">
+          <option value="normal">🙂 Normal day</option>
+          <option value="gentle">🌱 Gentle day</option>
+          <option value="focus">🔥 Deep focus</option>
+          <option value="low">🪫 Running low</option>
+        </select>
+      </div>
       <button class="btn icon-btn" id="themeBtn" aria-label="Switch between light and dark">☾</button>
     </div>
   </div>
@@ -511,6 +635,31 @@ body.gentle .block[data-optional].done .card{opacity:.5}
     </div>
   </header>
 
+  <!-- birthday countdown -->
+  <div class="bday rv">
+    <div class="bday-in">
+      <p class="bday-eyebrow">🎂 Coming up</p>
+      <h2 class="bday-title">Diya turns <span class="em">23</span></h2>
+      <p class="bday-date">31st July</p>
+      <div class="bday-countdown" id="bdayCountdown">
+        <div><b id="cdDays">0</b><span>days</span></div>
+        <div><b id="cdHours">00</b><span>hrs</span></div>
+        <div><b id="cdMins">00</b><span>min</span></div>
+        <div><b id="cdSecs">00</b><span>sec</span></div>
+      </div>
+      <p class="bday-msg" id="bdayMsg">Happy birthday, Diya. 🎉</p>
+
+      <div class="candles" id="candles">
+        <div class="candle"><span class="smoke"></span><span class="wick-flame"></span><span class="num">2</span></div>
+        <div class="candle"><span class="smoke"></span><span class="wick-flame"></span><span class="num">3</span></div>
+      </div>
+      <button class="btn bday-btn" id="blowBtn">🕯️ Blow out the candles</button>
+      <p class="wish-msg" id="wishMsg">Make a wish. 🌙</p>
+
+      <button class="btn bday-btn" id="celebrateBtn">🎉 Celebrate</button>
+    </div>
+  </div>
+
   <!-- anchors -->
   <p class="mini-label">Non-negotiables, whatever else the day does</p>
   <div class="anchors">
@@ -558,7 +707,7 @@ body.gentle .block[data-optional].done .card{opacity:.5}
       </div>
     </li>
 
-    <li class="block rv" data-start="645" style="--c:var(--plum);--c2:var(--pool)" data-gentle-dur="60 min">
+    <li class="block rv" data-start="645" style="--c:var(--plum);--c2:var(--pool)" data-gentle-dur="60 min" data-focus>
       <div class="node"><span class="dot"></span></div>
       <div class="meta"><span class="t">10:45 AM</span><span class="dur">90 min</span><span class="tag">Deep work I</span><span class="nowtag">Now</span></div>
       <div class="card">
@@ -581,7 +730,7 @@ body.gentle .block[data-optional].done .card{opacity:.5}
       </div>
     </li>
 
-    <li class="block rv" data-start="760" style="--c:var(--plum);--c2:var(--guava)" data-gentle-dur="45 min">
+    <li class="block rv" data-start="760" style="--c:var(--plum);--c2:var(--guava)" data-gentle-dur="45 min" data-focus>
       <div class="node"><span class="dot"></span></div>
       <div class="meta"><span class="t">12:40 PM</span><span class="dur">90 min</span><span class="tag">Deep work II</span><span class="nowtag">Now</span></div>
       <div class="card">
@@ -872,6 +1021,199 @@ body.gentle .block[data-optional].done .card{opacity:.5}
     return new Date(d.getTime() + (d.getTimezoneOffset() + 330) * 60000);
   }
 
+  /* ---- birthday countdown: 31 July, IST ---- */
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+  function updateBday(){
+    var box = $("#bdayCountdown"), msg = $("#bdayMsg");
+    if (!box || !msg) return;
+    var now = istNow();
+    var target = new Date(now.getFullYear(), 6, 31, 0, 0, 0, 0);
+    var dayMs = 86400000;
+    var diff = target - now;
+    if (diff < -dayMs) {
+      target = new Date(now.getFullYear() + 1, 6, 31, 0, 0, 0, 0);
+      diff = target - now;
+    }
+    if (diff <= 0 && diff > -dayMs) {
+      box.style.display = "none";
+      msg.style.display = "block";
+      return;
+    }
+    box.style.display = "";
+    msg.style.display = "none";
+    $("#cdDays").textContent = Math.floor(diff / dayMs);
+    $("#cdHours").textContent = pad2(Math.floor((diff % dayMs) / 3600000));
+    $("#cdMins").textContent = pad2(Math.floor((diff % 3600000) / 60000));
+    $("#cdSecs").textContent = pad2(Math.floor((diff % 60000) / 1000));
+  }
+
+  /* ---- birthday celebration: "Happy Birthday to You", synthesized ---- */
+  // [frequency, beats] — key of C, quarter note = 0.4s
+  var BDAY_BEAT = 0.4;
+  var BDAY_SONG = [
+    [392.00, .5], [392.00, .5], [440.00, 1], [392.00, 1], [523.25, 1], [493.88, 2],
+    [392.00, .5], [392.00, .5], [440.00, 1], [392.00, 1], [587.33, 1], [523.25, 2],
+    [392.00, .5], [392.00, .5], [783.99, 1], [659.25, 1], [523.25, 1], [493.88, 1], [440.00, 2],
+    [698.46, .5], [698.46, .5], [659.25, 1], [523.25, 1], [587.33, 1], [523.25, 2]
+  ];
+  var BDAY_SONG_DUR = 0;
+  BDAY_SONG.forEach(function(n){ BDAY_SONG_DUR += n[1] * BDAY_BEAT; });
+
+  function playPartySound(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ctx = new AC();
+      var now = ctx.currentTime;
+      var beat = BDAY_BEAT, song = BDAY_SONG, total = BDAY_SONG_DUR;
+      var t = now;
+
+      song.forEach(function(note){
+        var freq = note[0], dur = note[1] * beat * 0.9;
+        var gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.22, t + 0.03);
+        gain.gain.setValueAtTime(0.22, t + dur * 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        gain.connect(ctx.destination);
+
+        var osc = ctx.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        osc.start(t);
+        osc.stop(t + dur + 0.02);
+
+        var shimmer = ctx.createOscillator(), sGain = ctx.createGain();
+        shimmer.type = "sine";
+        shimmer.frequency.value = freq * 2;
+        sGain.gain.value = 0.06;
+        shimmer.connect(sGain).connect(gain);
+        shimmer.start(t);
+        shimmer.stop(t + dur + 0.02);
+
+        t += note[1] * beat;
+      });
+
+      setTimeout(function(){ ctx.close(); }, (total + 0.6) * 1000);
+    } catch (e){}
+  }
+
+  function launchConfetti(durationMs){
+    var canvas = $("#confettiCanvas");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width = window.innerWidth;
+    var H = canvas.height = window.innerHeight;
+    var colors = ["#E8961C", "#1C6E68", "#F2665E", "#4B3C7E", "#F3B14A"];
+    var particles = [];
+
+    function spawn(n){
+      for (var i = 0; i < n; i++){
+        particles.push({
+          x: Math.random() * W,
+          y: -20 - Math.random() * 60,
+          r: 4 + Math.random() * 5,
+          c: colors[Math.floor(Math.random() * colors.length)],
+          vx: -2 + Math.random() * 4,
+          vy: 2 + Math.random() * 2.5,
+          rot: Math.random() * 360,
+          vr: -8 + Math.random() * 16,
+          rect: Math.random() < 0.5,
+        });
+      }
+    }
+
+    spawn(90);
+    var endAt = performance.now() + durationMs;
+    var spawnTimer = setInterval(function(){
+      if (performance.now() >= endAt){ clearInterval(spawnTimer); return; }
+      spawn(35);
+    }, 650);
+
+    function frame(ts){
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(function(p){
+        p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.c;
+        if (p.rect) ctx.fillRect(-p.r, -p.r * 0.6, p.r * 2, p.r * 1.2);
+        else { ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill(); }
+        ctx.restore();
+      });
+      particles = particles.filter(function(p){ return p.y < H + 40; });
+      if (ts < endAt || particles.length){
+        requestAnimationFrame(frame);
+      } else {
+        clearInterval(spawnTimer);
+        ctx.clearRect(0, 0, W, H);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---- blow out the candles ---- */
+  function playBlow(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ctx = new AC();
+      var t = ctx.currentTime;
+      var bufferSize = ctx.sampleRate * 0.6;
+      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      var src = ctx.createBufferSource();
+      src.buffer = buffer;
+      var filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1800, t);
+      filter.frequency.exponentialRampToValueAtTime(150, t + 0.55);
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.32, t + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      src.connect(filter).connect(gain).connect(ctx.destination);
+      src.start(t);
+      src.stop(t + 0.62);
+      setTimeout(function(){ ctx.close(); }, 900);
+    } catch (e){}
+  }
+
+  var candles = $("#candles"), blowBtn = $("#blowBtn"), wishMsg = $("#wishMsg");
+  if (blowBtn && candles && wishMsg){
+    blowBtn.addEventListener("click", function(){
+      var lit = !candles.classList.contains("out");
+      if (lit){
+        candles.classList.add("out");
+        wishMsg.style.display = "block";
+        blowBtn.textContent = "🕯️ Light them again";
+        playBlow();
+      } else {
+        candles.classList.remove("out");
+        wishMsg.style.display = "none";
+        blowBtn.textContent = "🕯️ Blow out the candles";
+      }
+    });
+  }
+
+  var celebrateBtn = $("#celebrateBtn");
+  if (celebrateBtn){
+    celebrateBtn.addEventListener("click", function(){
+      if (celebrateBtn.disabled) return;
+      celebrateBtn.disabled = true;
+      celebrateBtn.classList.remove("pop");
+      void celebrateBtn.offsetWidth;
+      celebrateBtn.classList.add("pop");
+      playPartySound();
+      var durationMs = BDAY_SONG_DUR * 1000;
+      if (!calm) launchConfetti(durationMs);
+      setTimeout(function(){ celebrateBtn.disabled = false; }, durationMs);
+    });
+  }
+
   /* ---- progress ring ---- */
   var C = 2 * Math.PI * 15;
   var ringVal = $("#ringVal"), ringNum = $("#ringNum");
@@ -936,23 +1278,28 @@ body.gentle .block[data-optional].done .card{opacity:.5}
     autoTheme();
   }
 
-  /* ---- gentle day ---- */
-  var gentleBtn = $("#gentleBtn"), gentle = false;
+  /* ---- mood: normal / gentle / focus / low battery ---- */
+  var moodSelect = $("#moodSelect");
   blocks.forEach(function(b){
     var d = $(".dur", b);
     if (d) b.dataset.fullDur = d.textContent;
   });
-  gentleBtn.addEventListener("click", function(){
-    gentle = !gentle;
-    document.body.classList.toggle("gentle", gentle);
-    gentleBtn.setAttribute("aria-pressed", String(gentle));
-    gentleBtn.textContent = gentle ? "Gentle day: on" : "Gentle day";
+  function applyMood(mood){
+    document.body.classList.toggle("gentle", mood === "gentle" || mood === "low");
+    document.body.classList.toggle("mood-focus", mood === "focus");
+    document.body.classList.toggle("mood-low", mood === "low");
+    var gentleDurActive = mood === "gentle" || mood === "low";
     blocks.forEach(function(b){
       var d = $(".dur", b);
       if (!d) return;
-      d.textContent = (gentle && b.dataset.gentleDur) ? b.dataset.gentleDur : b.dataset.fullDur;
+      d.textContent = (gentleDurActive && b.dataset.gentleDur) ? b.dataset.gentleDur : b.dataset.fullDur;
     });
-  });
+  }
+  if (moodSelect){
+    moodSelect.addEventListener("change", function(){
+      applyMood(moodSelect.value);
+    });
+  }
 
   /* ---- hobby jar ---- */
   var jarOut = $("#jarOut"), last = -1;
@@ -986,7 +1333,9 @@ body.gentle .block[data-optional].done .card{opacity:.5}
   refreshRing();
   countUp();
   tick();
+  updateBday();
   setInterval(tick, 30000);
+  setInterval(updateBday, 1000);
 })();
 </script>
 </body>
