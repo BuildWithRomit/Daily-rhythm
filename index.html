@@ -1027,6 +1027,44 @@ body.mood-low .rescue{
     return new Date(d.getTime() + (d.getTimezoneOffset() + 330) * 60000);
   }
 
+  /* ---- checklist persistence: same browser, resets after 1:30 AM IST ---- */
+  var CHECK_STORAGE_KEY = "diyaRhythmChecks";
+  function rhythmDayKey(){
+    var d = istNow();
+    var minutes = d.getHours() * 60 + d.getMinutes();
+    var day = new Date(d);
+    if (minutes < 90) day.setDate(day.getDate() - 1); // before 1:30 AM belongs to the night before
+    return day.getFullYear() + "-" + (day.getMonth() + 1) + "-" + day.getDate();
+  }
+  function loadChecks(){
+    try{ return JSON.parse(localStorage.getItem(CHECK_STORAGE_KEY)); }
+    catch (e){ return null; }
+  }
+  function saveChecks(state){
+    try{ localStorage.setItem(CHECK_STORAGE_KEY, JSON.stringify(state)); }
+    catch (e){}
+  }
+  var checkState = loadChecks();
+  if (!checkState || checkState.day !== rhythmDayKey()){
+    checkState = { day: rhythmDayKey(), checks: {} };
+    saveChecks(checkState);
+  }
+  function applyStoredChecks(){
+    blocks.forEach(function(b){
+      var input = $(".check input", b);
+      if (!input) return;
+      var on = !!checkState.checks[b.dataset.start];
+      input.checked = on;
+      b.classList.toggle("done", on);
+    });
+  }
+  function resetChecksForNewDay(){
+    checkState = { day: rhythmDayKey(), checks: {} };
+    saveChecks(checkState);
+    applyStoredChecks();
+    refreshRing();
+  }
+
   /* ---- birthday countdown: 31 July, IST ---- */
   function pad2(n){ return (n < 10 ? "0" : "") + n; }
   function updateBday(){
@@ -1235,7 +1273,10 @@ body.mood-low .rescue{
 
   $$(".check input").forEach(function(box){
     box.addEventListener("change", function(){
-      box.closest(".block").classList.toggle("done", box.checked);
+      var block = box.closest(".block");
+      block.classList.toggle("done", box.checked);
+      checkState.checks[block.dataset.start] = box.checked;
+      saveChecks(checkState);
       refreshRing();
     });
   });
@@ -1282,6 +1323,8 @@ body.mood-low .rescue{
     }
 
     autoTheme();
+
+    if (checkState.day !== rhythmDayKey()) resetChecksForNewDay();
   }
 
   /* ---- mood: normal / gentle / focus / low battery ---- */
@@ -1336,6 +1379,7 @@ body.mood-low .rescue{
     items.forEach(function(el){ el.classList.add("in"); });
   }
 
+  applyStoredChecks();
   refreshRing();
   countUp();
   tick();
